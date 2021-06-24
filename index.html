@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/index.css">
+    <title>品牌管理demo</title>
+    <style>
+        input{
+            border: 1px solid #98a3e5;
+        }
+        .title {
+            width: 100%;
+            padding-left: 20px;
+            color: white;
+            font-size: 20px;
+            background-color: #b7b7f3;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .box {
+            height: 30px;
+        }
+        .box label {
+            margin-right: 10px;
+        }
+        .box input[type="button"] {
+            background-color: #8a8afc;
+            color: greenyellow;
+        }
+
+        table {
+            width: 100%;
+            border: 1px solid black;
+        }
+        table tr th {
+            font-weight: 400;
+            color: #ff8b00;
+        }
+        table tr, table td {
+            text-align: center;
+            border: 1px solid black;
+        }
+        table tr .del {
+            cursor: pointer;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div :class="['title']">增加品牌</div>
+    <div :class="['box']">
+        <label>
+            id：<input type="text" v-model="addId">
+        </label>
+        <label>
+            Name：<input type="text" v-model="addName">
+                 <!--在Vue 中使用事件绑定的时候，如果加了()就可以传参数了 -->
+                  <input type="button" value="确认" @click="add">
+        </label>
+        <label>
+            搜索关键字：<input type="text" v-model="keywords">
+        </label>
+    </div>
+    <table>
+        <tr>
+            <!-- 表头 -->
+            <th>ID</th>
+            <th>品牌名称</th>
+            <th>增加事件</th>
+            <th>操作</th>
+        </tr>
+        <!-- 1.之前，v-for的数据，都是直接从data上的list中直接渲染过来的
+            2.现在我们自己定义了一个search的方法，同时，把所有的关键字，通过传参的形式，传递给了 search方法内部
+            3.在search方法内部通过执行 for循环把所有符合搜索关键字的数据保存到一个新数组中，返回
+
+         -->
+        <tr v-for="item in search(keywords)" :key="item.id">
+            <!-- 表格内容 -->
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td class="time">{{ item.ctime }}</td>
+            <td>
+                <!--.prevent 禁止 a标签默认行为 -->
+                <a href=""  @click.prevent="del(item.id)"  :class="['del']">删除</a>
+            </td>
+        </tr>
+
+<!--        <tr v-for="item in list" :key="item.id">-->
+<!--            &lt;!&ndash; 表格内容 &ndash;&gt;-->
+<!--            <td>{{ item.id }}</td>-->
+<!--            <td>{{ item.name }}</td>-->
+<!--            <td>{{ item.ctime }}</td>-->
+<!--            <td>-->
+<!--                <a href=""  @click.prevent="del(item.id)"  :class="['del']">删除</a>-->
+<!--            </td>-->
+<!--        </tr>-->
+    </table>
+</div>
+
+
+<script src="lib/vue.js"></script>
+<script>
+let vm = new Vue({
+     el: '#app',
+     data: {
+         addId: '',
+         addName: '',
+         keywords: '', //搜索的关键字
+         list: [
+             {id: 1, name: '奔驰', ctime: _timer()},
+             {id: 2, name: '宝马', ctime: _timer()},
+             {id: 3, name: '宝马', ctime: _timer()},
+             {id: 4, name: '宝马', ctime: _timer()}
+         ]
+     },
+     methods: { //写的业务逻辑
+         //增加
+         add() {
+             /**
+              * 分析
+              * 1.获取到 id和name，直接从data上面获取
+              * 2.组织一个对象
+              * 3.把这个对象，调用数组的相关方法，增加到当前data上的 list中
+              * 4.注意:在vue中已经实现了数组的双向绑定，当我们修改了data中的数据，Vue会默认监听到数据的改动过
+              * ，自动把最新的数据，应用到页面
+              * 5.当我们意识到上面的第四步的时候，就证明大家已经入门 Vue了，我们更多的是在进行 Vm中的 Model数据的操作，
+              * 同时在操作 Model数据的时候，执行的业务逻辑操作
+              * */
+             let car = {id: this.addId, name: this.addName, ctime: new Date()} //获取到value的值然后给他一个对象
+             if (!this.addId || !this.addName) {
+                 alert('不能为空')
+             } else {
+                 this.list.push(car) //增加
+             }
+         },
+         //根据id删除数据
+         del(id) {
+             /*分析
+        * 1.如果通过id，找到对应的索引
+        * 2.找到了索引，直接调用数据的 splice的方法
+        * */
+             //根据指定的条件进行判断 如果为真，就终止这个循环了
+             //在数组的some方法中，如果 return true 就会立即终止这个数据后续的循环
+             this.list.some((item, i) => {
+                 if (item.id === id) {
+                     this.list.splice(i, 1)
+                     return true;
+                 }
+             })
+
+             //findIndex它也是方法 它是专门用来查找索引的
+             // let index = this.list.findIndex(item =>{  //它是回调函数 findIndex
+             //    if(item.id === id) {
+             //        console.log(id)
+             //        return true;
+             //    }
+             // })
+             // this.list.splice(index,1)
+         },
+         //搜索功能
+         search(keywords) {//根据关键字，进行数据的搜索
+             let newList = []
+             this.list.forEach(item => {
+                 // console.log(item.name.indexOf(keywords))
+                 // console.log(item.id)
+                 if (item.name.indexOf(keywords) !== -1) {  //-1代表没有找到 0代表找到了
+                     newList.push(item)
+                 }
+             })
+             return newList
+         },
+     }
+ })
+
+
+function _timer() {
+    setInterval( function (){
+        let nowTimer = new Date();
+        let y = nowTimer.getFullYear() //年
+        let m = nowTimer.getMonth() + 1//月
+        m = m < 10 ? `0${m}` : m
+        let d = nowTimer.getDate()//日
+        d = d < 10 ? `0${d}` : d
+        let h = nowTimer.getHours()//时
+        h = h < 10 ? `0${h}` : h
+        let minute = nowTimer.getMinutes()//分
+        minute = minute < 10 ? `0${minute}` : minute
+        let sed = nowTimer.getSeconds()//秒
+        sed = sed < 10 ? `0${sed}` : sed
+        let now = `${y}年${m}月${d}日${h}:${minute}:${sed}`
+
+        let timeHtml = document.querySelectorAll('.time')
+        for (let item of timeHtml) {
+            item.innerHTML = now
+        }
+        return now
+    }, 1000)
+}
+
+
+</script>
+
+</body>
+</html>
+
